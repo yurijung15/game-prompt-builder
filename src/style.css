@@ -4,9 +4,9 @@
 
 body {
   margin: 0;
-  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #020617;
   color: #f8fafc;
+  font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 button,
@@ -23,13 +23,13 @@ button {
   min-height: 100vh;
   padding: 28px;
   background:
-    radial-gradient(circle at top left, rgba(99, 102, 241, 0.22), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.14), transparent 30%),
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.24), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.16), transparent 30%),
     #020617;
 }
 
 .hero {
-  max-width: 1320px;
+  max-width: 1480px;
   margin: 0 auto 22px;
   display: flex;
   align-items: flex-end;
@@ -50,7 +50,7 @@ button {
 }
 
 h1 {
-  font-size: clamp(32px, 5vw, 54px);
+  font-size: clamp(34px, 5vw, 56px);
   line-height: 1.05;
   margin: 18px 0 12px;
   letter-spacing: -0.04em;
@@ -69,28 +69,28 @@ h1 {
   flex-wrap: wrap;
 }
 
-.appLayout {
-  max-width: 1320px;
+.layout {
+  max-width: 1480px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(520px, 1.05fr) minmax(420px, .95fr);
+  grid-template-columns: minmax(560px, 0.9fr) minmax(560px, 1.1fr);
   gap: 22px;
   align-items: start;
 }
 
-.builderPanel,
+.builder,
 .card {
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(15, 23, 42, 0.9);
   border: 1px solid #1e293b;
   border-radius: 28px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
 }
 
-.builderPanel {
+.builder {
   padding: 18px;
 }
 
-.topTabs {
+.tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
@@ -101,7 +101,7 @@ h1 {
   border: 1px solid #1e293b;
 }
 
-.topTab {
+.tab {
   color: #cbd5e1;
   background: transparent;
   padding: 16px 18px;
@@ -112,54 +112,73 @@ h1 {
   transition: 0.16s ease;
 }
 
-.topTab span {
+.tab span {
   margin-right: 8px;
 }
 
-.topTab.active {
+.tab.active {
   color: white;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   box-shadow: 0 12px 30px rgba(99, 102, 241, .28);
 }
 
-.sectionTitle,
-.optionLabel {
+.section {
+  margin-top: 18px;
+  padding: 16px;
+  background: rgba(2, 6, 23, 0.46);
+  border: 1px solid #263244;
+  border-radius: 22px;
+}
+
+.sectionTitle {
   display: flex;
   align-items: center;
   gap: 8px;
   color: #e2e8f0;
   font-size: 16px;
   font-weight: 900;
-  margin: 18px 0 10px;
+  margin-bottom: 12px;
 }
 
-.sectionTitle.smallTitle {
-  font-size: 15px;
-  margin-top: 20px;
+.layerGroup {
+  padding: 12px 0;
+  border-top: 1px solid #1e293b;
 }
 
-.optionSections {
-  display: grid;
-  gap: 16px;
+.layerGroup:first-of-type {
+  border-top: 0;
+  padding-top: 0;
 }
 
-.optionGroup {
-  padding: 14px;
-  background: rgba(2, 6, 23, 0.42);
-  border: 1px solid #263244;
-  border-radius: 22px;
+.layerHead {
+  margin-bottom: 10px;
 }
 
-.optionLabel {
-  margin: 0 0 10px;
-  color: #cbd5e1;
+.layerHead strong,
+.fieldLabel {
+  display: block;
+  color: #e2e8f0;
   font-size: 14px;
+  font-weight: 900;
+  margin: 6px 0;
+}
+
+.layerHead span,
+.hint {
+  display: block;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .optionGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+}
+
+.optionGrid.three {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .option {
@@ -175,10 +194,6 @@ h1 {
   font-weight: 700;
 }
 
-.option span {
-  margin-right: 6px;
-}
-
 .option.active {
   color: white;
   background: #6366f1;
@@ -190,35 +205,8 @@ h1 {
   transform: translateY(-1px);
 }
 
-.option.multi.active {
-  background: #0f766e;
-}
-
-.textInputBlock,
-.multiGroup {
-  margin-top: 18px;
-  padding: 14px;
-  background: rgba(2, 6, 23, 0.42);
-  border: 1px solid #263244;
-  border-radius: 22px;
-}
-
-.textInputBlock label {
-  display: block;
-  color: #e2e8f0;
-  font-weight: 900;
-  margin-bottom: 6px;
-}
-
-.textInputBlock p {
-  color: #94a3b8;
-  font-size: 13px;
-  line-height: 1.6;
-  margin: 0 0 10px;
-}
-
-textarea,
-input {
+input,
+textarea {
   width: 100%;
   color: #f8fafc;
   background: #020617;
@@ -226,6 +214,7 @@ input {
   border-radius: 16px;
   padding: 12px 14px;
   outline: none;
+  margin-bottom: 12px;
 }
 
 textarea {
@@ -233,12 +222,16 @@ textarea {
   line-height: 1.6;
 }
 
-textarea:focus,
-input:focus {
+input:focus,
+textarea:focus {
   border-color: #818cf8;
 }
 
-.generateButton {
+.range {
+  padding: 0;
+}
+
+.generate {
   width: 100%;
   margin-top: 20px;
   padding: 18px;
@@ -255,17 +248,15 @@ input:focus {
   box-shadow: 0 18px 44px rgba(99, 102, 241, .28);
 }
 
-.generateButton:hover {
+.generate:hover {
   filter: brightness(1.08);
   transform: translateY(-1px);
 }
 
-.resultPanel {
+.result {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  position: sticky;
-  top: 18px;
 }
 
 .card {
@@ -286,22 +277,6 @@ h2 {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-pre {
-  white-space: pre-wrap;
-  background: #020617;
-  border: 1px solid #1e293b;
-  border-radius: 22px;
-  padding: 20px;
-  min-height: 330px;
-  line-height: 1.8;
-  color: #f8fafc;
-  overflow-x: auto;
-}
-
-.placeholderPrompt {
-  color: #64748b;
 }
 
 .button {
@@ -333,11 +308,57 @@ pre {
   filter: brightness(1.12);
 }
 
-.saveRow {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  margin-bottom: 14px;
+.emptyPrompt {
+  color: #64748b;
+  background: #020617;
+  border: 1px dashed #334155;
+  border-radius: 22px;
+  padding: 28px;
+  line-height: 1.7;
+}
+
+.variationList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.variationCard {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 22px;
+  padding: 16px;
+}
+
+.variationHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.variationHeader strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+
+.variationHeader span {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+pre {
+  white-space: pre-wrap;
+  background: #030712;
+  border: 1px solid #1e293b;
+  border-radius: 18px;
+  padding: 16px;
+  min-height: 220px;
+  line-height: 1.75;
+  color: #f8fafc;
+  overflow-x: auto;
 }
 
 .savedList {
@@ -346,7 +367,7 @@ pre {
   gap: 10px;
 }
 
-.emptyText {
+.empty {
   color: #94a3b8;
   margin: 0;
   line-height: 1.7;
@@ -382,7 +403,7 @@ pre {
   line-height: 1.5;
 }
 
-.iconButton {
+.deleteBtn {
   width: 42px;
   height: 42px;
   border-radius: 14px;
@@ -394,28 +415,14 @@ pre {
   cursor: pointer;
 }
 
-.iconButton:hover {
+.deleteBtn:hover {
   background: #7f1d1d;
   color: white;
 }
 
-.guideCard ol {
-  margin: 0;
-  padding-left: 22px;
-}
-
-.guideCard li {
-  color: #cbd5e1;
-  line-height: 1.8;
-}
-
-@media (max-width: 1080px) {
-  .appLayout {
+@media (max-width: 1180px) {
+  .layout {
     grid-template-columns: 1fr;
-  }
-
-  .resultPanel {
-    position: static;
   }
 }
 
@@ -432,26 +439,18 @@ pre {
     margin-top: 16px;
   }
 
-  .optionGrid {
-    grid-template-columns: repeat(2, 1fr);
+  .optionGrid,
+  .optionGrid.three {
+    grid-template-columns: 1fr;
   }
 
-  .cardHeader {
+  .cardHeader,
+  .variationHeader {
     flex-direction: column;
   }
 
-  .saveRow {
-    grid-template-columns: 1fr;
-  }
-
-  .topTab {
+  .tab {
     font-size: 15px;
     padding: 14px 10px;
-  }
-}
-
-@media (max-width: 440px) {
-  .optionGrid {
-    grid-template-columns: 1fr;
   }
 }
