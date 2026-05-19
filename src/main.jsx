@@ -1,157 +1,363 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Copy, Sparkles, Dice5, ImagePlus, Wand2, Palette, Camera, Sun, Gamepad2, Upload } from "lucide-react";
+import {
+  Bookmark,
+  Camera,
+  Copy,
+  Dice5,
+  Gamepad2,
+  Library,
+  Palette,
+  Save,
+  Sparkles,
+  Sun,
+  Trash2,
+  Wand2,
+} from "lucide-react";
 import "./style.css";
 
-const PRESETS = {
-  background: {
-    label: "배경 전용",
-    emoji: "🏞️",
-    subjectLabel: "무엇을 그릴까요?",
-    subjectHelp: "예: 마법 상점, 판타지 마을, 던전 입구",
-    subject: "a cozy fantasy village square",
-    detail: "cute stylized houses, colorful banners, flower pots, a small fountain, winding stone paths",
-    camera: "isometric view",
-    extra: "game-ready layout, readable environment design, foreground and background separation",
+const TABS = [
+  { id: "background", label: "배경 전용", emoji: "🏞️" },
+  { id: "character", label: "캐릭터 전용", emoji: "🧙" },
+];
+
+const BACKGROUND_OPTIONS = {
+  type: {
+    label: "배경 타입",
+    icon: "🏘️",
+    options: [
+      { label: "마을", emoji: "🏘️", value: "a cozy fantasy village square" },
+      { label: "상점", emoji: "🧪", value: "a cute fantasy potion shop interior" },
+      { label: "던전", emoji: "🕯️", value: "a mysterious magical dungeon entrance" },
+      { label: "숲", emoji: "🌲", value: "an enchanted forest path" },
+      { label: "하늘섬", emoji: "☁️", value: "a floating island village in the sky" },
+      { label: "이벤트맵", emoji: "🎪", value: "a festive limited-time event map" },
+    ],
   },
-  character: {
-    label: "캐릭터 컨셉",
-    emoji: "🧙",
-    subjectLabel: "어떤 캐릭터인가요?",
-    subjectHelp: "예: 마법사 소녀, 여우 전사, 힐러 NPC",
-    subject: "a cheerful young fantasy mage",
-    detail: "large expressive eyes, blue and white robe, glowing crystal staff, short silver hair, charming smile",
-    camera: "full body character concept, front view, dynamic pose",
-    extra: "clean silhouette, iconic shape language, high readability, appealing costume design",
+  mood: {
+    label: "분위기",
+    icon: "✨",
+    options: [
+      { label: "밝은", emoji: "☀️", value: "cheerful" },
+      { label: "포근한", emoji: "🧸", value: "cozy" },
+      { label: "신비로운", emoji: "🌙", value: "mysterious" },
+      { label: "모험적인", emoji: "🗺️", value: "adventurous" },
+      { label: "평화로운", emoji: "🌿", value: "peaceful" },
+      { label: "축제 같은", emoji: "🎈", value: "festive" },
+    ],
   },
-  casualKorea: {
-    label: "한국 캐주얼 모바일",
-    emoji: "🍰",
-    subjectLabel: "컨셉 대상",
-    subjectHelp: "예: 귀여운 포션 상점, 이벤트 맵, 수집형 RPG 캐릭터",
-    subject: "a cute fantasy potion shop",
-    detail: "rounded shapes, soft materials, colorful roof, glowing bottles, tiny magical decorations",
-    camera: "three-quarter isometric view",
-    extra: "Korean casual mobile game style, vibrant colors, soft shading, polished illustration",
+  genre: {
+    label: "장르",
+    icon: "🎮",
+    options: [
+      { label: "판타지", emoji: "🧚", value: "fantasy" },
+      { label: "캐주얼 RPG", emoji: "🎮", value: "casual RPG" },
+      { label: "방치형 RPG", emoji: "💤", value: "idle RPG" },
+      { label: "퍼즐 RPG", emoji: "🧩", value: "puzzle RPG" },
+      { label: "마을 꾸미기", emoji: "🏡", value: "town-building game" },
+      { label: "수집형 RPG", emoji: "💎", value: "collectible RPG" },
+    ],
+  },
+  lighting: {
+    label: "조명",
+    icon: "🌤️",
+    options: [
+      { label: "부드러운 햇빛", emoji: "🌤️", value: "soft sunlight" },
+      { label: "따뜻한 석양", emoji: "🌅", value: "warm sunset lighting" },
+      { label: "은은한 달빛", emoji: "🌙", value: "gentle moonlight" },
+      { label: "마법광", emoji: "✨", value: "soft magical glow" },
+      { label: "밝은 아침", emoji: "☀️", value: "bright morning light" },
+      { label: "시네마틱", emoji: "🎬", value: "cinematic soft lighting" },
+    ],
+  },
+  color: {
+    label: "컬러",
+    icon: "🎨",
+    options: [
+      { label: "파스텔", emoji: "🌈", value: "vibrant pastel colors" },
+      { label: "따뜻한 색감", emoji: "🍯", value: "warm colorful palette" },
+      { label: "블루골드", emoji: "🔵", value: "blue and gold palette" },
+      { label: "핑크퍼플", emoji: "💜", value: "pink and purple palette" },
+      { label: "싱그러운 그린", emoji: "🌱", value: "fresh green palette" },
+      { label: "밝은 판타지", emoji: "🦄", value: "bright fantasy colors" },
+    ],
+  },
+  artStyle: {
+    label: "아트스타일",
+    icon: "🖌️",
+    options: [
+      { label: "한국 캐주얼", emoji: "🇰🇷", value: "Korean casual mobile game style" },
+      { label: "모바일 RPG", emoji: "🎮", value: "stylized mobile RPG art" },
+      { label: "귀여운 판타지", emoji: "🍄", value: "cute fantasy game art" },
+      { label: "고퀄 일러스트", emoji: "💫", value: "polished casual game illustration" },
+      { label: "애니메풍", emoji: "🌸", value: "anime-inspired stylized art" },
+    ],
+  },
+  artMood: {
+    label: "아트풍",
+    icon: "💎",
+    options: [
+      { label: "둥글고 귀여운", emoji: "🍡", value: "rounded cute shapes" },
+      { label: "장난감 같은", emoji: "🧸", value: "toy-like materials" },
+      { label: "깔끔한 쉐입", emoji: "🔷", value: "clean simple shape language" },
+      { label: "풍부한 장식", emoji: "💐", value: "rich decorative details" },
+      { label: "작은 화면 최적화", emoji: "📱", value: "optimized for small mobile screens" },
+    ],
+  },
+  camera: {
+    label: "카메라 구도",
+    icon: "📷",
+    options: [
+      { label: "아이소메트릭", emoji: "🔷", value: "isometric view" },
+      { label: "3/4 뷰", emoji: "📐", value: "three-quarter view" },
+      { label: "탑다운", emoji: "⬇️", value: "top-down game view" },
+      { label: "와이드 샷", emoji: "🎥", value: "wide cinematic shot" },
+      { label: "맵 화면", emoji: "🗺️", value: "game map composition" },
+    ],
   },
 };
 
-const moodOptions = [
-  { label: "밝은", emoji: "☀️", value: "cheerful" },
-  { label: "포근한", emoji: "🧸", value: "cozy" },
-  { label: "마법적인", emoji: "✨", value: "magical" },
-  { label: "모험적인", emoji: "🗺️", value: "adventurous" },
-  { label: "신비로운", emoji: "🌙", value: "mysterious" },
-  { label: "평화로운", emoji: "🌿", value: "peaceful" },
-  { label: "장난스러운", emoji: "🎈", value: "playful" },
-  { label: "영웅적인", emoji: "⚔️", value: "heroic" },
+const CHARACTER_OPTIONS = {
+  race: {
+    label: "종족",
+    icon: "🧬",
+    options: [
+      { label: "인간", emoji: "🙂", value: "human" },
+      { label: "엘프", emoji: "🧝", value: "elf" },
+      { label: "수인", emoji: "🦊", value: "animal-eared fantasy character" },
+      { label: "마족", emoji: "😈", value: "cute demon fantasy character" },
+      { label: "정령", emoji: "✨", value: "spirit fantasy character" },
+      { label: "요정", emoji: "🧚", value: "fairy fantasy character" },
+    ],
+  },
+  job: {
+    label: "직업",
+    icon: "⚔️",
+    options: [
+      { label: "마법사", emoji: "🪄", value: "mage" },
+      { label: "전사", emoji: "⚔️", value: "warrior" },
+      { label: "힐러", emoji: "💚", value: "healer" },
+      { label: "궁수", emoji: "🏹", value: "archer" },
+      { label: "상인", emoji: "🧺", value: "merchant NPC" },
+      { label: "아이돌", emoji: "🎤", value: "fantasy idol character" },
+    ],
+  },
+  personality: {
+    label: "성격",
+    icon: "💬",
+    options: [
+      { label: "밝은", emoji: "☀️", value: "cheerful" },
+      { label: "차분한", emoji: "🌿", value: "calm" },
+      { label: "장난꾸러기", emoji: "🎈", value: "playful" },
+      { label: "당당한", emoji: "👑", value: "confident" },
+      { label: "신비로운", emoji: "🌙", value: "mysterious" },
+      { label: "귀여운", emoji: "🍓", value: "cute and charming" },
+    ],
+  },
+  costume: {
+    label: "의상",
+    icon: "👗",
+    options: [
+      { label: "판타지 로브", emoji: "🧥", value: "fantasy robe" },
+      { label: "가벼운 갑옷", emoji: "🛡️", value: "light fantasy armor" },
+      { label: "모험가 복장", emoji: "🥾", value: "adventurer outfit" },
+      { label: "귀여운 드레스", emoji: "🎀", value: "cute fantasy dress" },
+      { label: "상점 NPC룩", emoji: "🧺", value: "cozy shopkeeper outfit" },
+      { label: "현대 판타지", emoji: "🧢", value: "modern fantasy outfit" },
+    ],
+  },
+  weapon: {
+    label: "무기 / 소품",
+    icon: "🪄",
+    options: [
+      { label: "스태프", emoji: "🪄", value: "glowing magical staff" },
+      { label: "검", emoji: "⚔️", value: "fantasy sword" },
+      { label: "활", emoji: "🏹", value: "ornate bow" },
+      { label: "책", emoji: "📘", value: "magical spellbook" },
+      { label: "포션", emoji: "🧪", value: "colorful potion bottles" },
+      { label: "마스코트", emoji: "🐾", value: "small cute mascot companion" },
+    ],
+  },
+  pose: {
+    label: "포즈",
+    icon: "🧍",
+    options: [
+      { label: "정면 전신", emoji: "🧍", value: "full body front view" },
+      { label: "액션 포즈", emoji: "💥", value: "dynamic action pose" },
+      { label: "전투 자세", emoji: "⚔️", value: "battle-ready stance" },
+      { label: "귀여운 인사", emoji: "👋", value: "cute greeting pose" },
+      { label: "아이콘용", emoji: "🔲", value: "clean character icon composition" },
+    ],
+  },
+  color: {
+    label: "컬러",
+    icon: "🎨",
+    options: [
+      { label: "파스텔", emoji: "🌈", value: "vibrant pastel colors" },
+      { label: "블루화이트", emoji: "💙", value: "blue and white color palette" },
+      { label: "핑크퍼플", emoji: "💜", value: "pink and purple color palette" },
+      { label: "레드골드", emoji: "❤️", value: "red and gold color palette" },
+      { label: "그린아이보리", emoji: "💚", value: "green and ivory color palette" },
+    ],
+  },
+  artStyle: {
+    label: "캐릭터풍",
+    icon: "🌸",
+    options: [
+      { label: "한국 캐주얼", emoji: "🇰🇷", value: "Korean casual mobile game character design" },
+      { label: "애니메풍", emoji: "🌸", value: "anime-inspired stylized character art" },
+      { label: "수집형 RPG", emoji: "💎", value: "collectible RPG character concept art" },
+      { label: "귀여운 SD", emoji: "🍡", value: "cute super-deformed proportions" },
+      { label: "모바일 RPG", emoji: "🎮", value: "mobile RPG character concept art" },
+    ],
+  },
+};
+
+const DESIGN_DIRECTION_OPTIONS = [
+  { label: "모바일 가독성", emoji: "📱", value: "high readability for mobile screens" },
+  { label: "실루엣 강조", emoji: "🔳", value: "clean recognizable silhouette" },
+  { label: "심플한 쉐입", emoji: "🔷", value: "simple shape language" },
+  { label: "장식 디테일", emoji: "💐", value: "rich but controlled decorative details" },
+  { label: "게임용 구성", emoji: "🎮", value: "game-ready composition" },
+  { label: "부드러운 쉐이딩", emoji: "🫧", value: "soft shading" },
 ];
 
-const genreOptions = [
-  { label: "판타지", emoji: "🧚", value: "fantasy" },
-  { label: "캐주얼 RPG", emoji: "🎮", value: "casual RPG" },
-  { label: "방치형 RPG", emoji: "💤", value: "idle RPG" },
-  { label: "퍼즐 RPG", emoji: "🧩", value: "puzzle RPG" },
-  { label: "어드벤처", emoji: "🧭", value: "adventure" },
-  { label: "마을 꾸미기", emoji: "🏘️", value: "town-building" },
-  { label: "수집형 RPG", emoji: "💎", value: "collectible RPG" },
+const NEGATIVE_OPTIONS = [
+  { label: "저퀄 제거", emoji: "🧹", value: "low quality, blurry, rough sketch" },
+  { label: "실사 제거", emoji: "🚫", value: "photorealistic, realistic skin texture" },
+  { label: "공포풍 제거", emoji: "👻", value: "horror, creepy, dark gritty realism" },
+  { label: "복잡함 제거", emoji: "🧩", value: "messy composition, overly complex details" },
+  { label: "가독성 문제 제거", emoji: "👁️", value: "unreadable silhouette, unclear focal point" },
+  { label: "왜곡 제거", emoji: "🖐️", value: "bad anatomy, distorted hands, extra fingers" },
 ];
 
-const lightingOptions = [
-  { label: "부드러운 햇빛", emoji: "🌤️", value: "soft sunlight" },
-  { label: "따뜻한 석양", emoji: "🌅", value: "warm sunset lighting" },
-  { label: "은은한 달빛", emoji: "🌙", value: "gentle moonlight" },
-  { label: "밝은 아침", emoji: "☀️", value: "bright morning light" },
-  { label: "마법 빛", emoji: "✨", value: "soft magical glow" },
-  { label: "시네마틱", emoji: "🎬", value: "cinematic soft lighting" },
-];
+const DEFAULT_SELECTION = {
+  background: {
+    type: "a cozy fantasy village square",
+    mood: "cheerful",
+    genre: "casual RPG",
+    lighting: "soft sunlight",
+    color: "vibrant pastel colors",
+    artStyle: "Korean casual mobile game style",
+    artMood: "rounded cute shapes",
+    camera: "isometric view",
+    detail: "cute stylized houses, colorful banners, flower pots, a small fountain, winding stone paths",
+  },
+  character: {
+    race: "animal-eared fantasy character",
+    job: "mage",
+    personality: "cheerful",
+    costume: "fantasy robe",
+    weapon: "glowing magical staff",
+    pose: "full body front view",
+    color: "vibrant pastel colors",
+    artStyle: "Korean casual mobile game character design",
+    detail: "large expressive eyes, charming smile, soft hair, appealing costume details",
+  },
+};
 
-const paletteOptions = [
-  { label: "선명한 파스텔", emoji: "🌈", value: "vibrant pastel colors" },
-  { label: "따뜻한 색감", emoji: "🍯", value: "warm colorful palette" },
-  { label: "블루 & 골드", emoji: "🔵", value: "blue and gold palette" },
-  { label: "싱그러운 그린", emoji: "🌱", value: "fresh green palette" },
-  { label: "핑크 & 퍼플", emoji: "💜", value: "pink and purple palette" },
-  { label: "밝은 판타지", emoji: "🦄", value: "bright fantasy colors" },
-];
-
-const styleOptions = [
-  { label: "한국 캐주얼 모바일", emoji: "🇰🇷", value: "Korean casual mobile game style" },
-  { label: "스타일라이즈드 RPG", emoji: "🎨", value: "stylized mobile RPG art" },
-  { label: "귀여운 판타지", emoji: "🍄", value: "cute fantasy game art" },
-  { label: "고퀄 캐주얼 일러스트", emoji: "💫", value: "polished casual game illustration" },
-  { label: "애니메풍", emoji: "🌸", value: "anime-inspired stylized art" },
-];
-
-const cameraOptions = [
-  { label: "아이소메트릭", emoji: "🔷", value: "isometric view" },
-  { label: "정면 전신", emoji: "🧍", value: "full body character concept, front view" },
-  { label: "3/4 뷰", emoji: "📐", value: "three-quarter view" },
-  { label: "탑다운", emoji: "⬇️", value: "top-down game view" },
-  { label: "와이드 샷", emoji: "🎥", value: "wide cinematic shot" },
-];
-
-const quality = ["highly polished", "high readability", "clean shapes", "soft shading", "simple but rich details", "game concept art", "mobile game art", "4k"];
-
-function randomOf(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+function randomOf(items) {
+  return items[Math.floor(Math.random() * items.length)];
 }
 
 function App() {
-  const [mode, setMode] = useState("background");
-  const [mood, setMood] = useState("cheerful");
-  const [genre, setGenre] = useState("fantasy");
-  const [subject, setSubject] = useState(PRESETS.background.subject);
-  const [details, setDetails] = useState(PRESETS.background.detail);
-  const [light, setLight] = useState("warm sunset lighting");
-  const [palette, setPalette] = useState("vibrant pastel colors");
-  const [style, setStyle] = useState("Korean casual mobile game style");
-  const [camera, setCamera] = useState(PRESETS.background.camera);
-  const [extra, setExtra] = useState(PRESETS.background.extra);
-  const [negative, setNegative] = useState("realistic horror, dark gritty realism, noisy details, unreadable silhouette, messy composition, low quality, blurry");
+  const [activeTab, setActiveTab] = useState("background");
+  const [background, setBackground] = useState(DEFAULT_SELECTION.background);
+  const [character, setCharacter] = useState(DEFAULT_SELECTION.character);
+  const [designDirections, setDesignDirections] = useState([
+    "high readability for mobile screens",
+    "clean recognizable silhouette",
+    "soft shading",
+  ]);
+  const [negativeItems, setNegativeItems] = useState([
+    "low quality, blurry, rough sketch",
+    "messy composition, overly complex details",
+    "unreadable silhouette, unclear focal point",
+  ]);
+  const [finalPrompt, setFinalPrompt] = useState("");
   const [copied, setCopied] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
-  const [imageMemo, setImageMemo] = useState("rounded cute shapes, pastel colors, soft shading, mobile game illustration style");
-  const [useImageReference, setUseImageReference] = useState(false);
+  const [savedStyles, setSavedStyles] = useState([]);
+  const [styleName, setStyleName] = useState("내 스타일 01");
 
-  const preset = PRESETS[mode];
+  useEffect(() => {
+    const saved = localStorage.getItem("conceptToolV2Styles");
+    if (!saved) return;
+    try {
+      setSavedStyles(JSON.parse(saved));
+    } catch {
+      setSavedStyles([]);
+    }
+  }, []);
 
-  const prompt = useMemo(() => {
-    return [
-      `A ${mood} ${genre} concept image featuring ${subject},`,
-      `with ${details}.`,
-      `The scene has ${light}, ${palette}, and a ${mood} atmosphere.`,
-      `Art style: ${style}.`,
-      `Camera and composition: ${camera}.`,
-      `Design direction: ${extra}.`,
-      useImageReference ? `Image reference notes: ${imageMemo}.` : "",
-      `Quality keywords: ${quality.join(", ")}.`,
-    ].filter(Boolean).join("\n");
-  }, [mood, genre, subject, details, light, palette, style, camera, extra, useImageReference, imageMemo]);
+  const currentSelection = activeTab === "background" ? background : character;
 
-  const applyPreset = (nextMode) => {
-    const p = PRESETS[nextMode];
-    setMode(nextMode);
-    setSubject(p.subject);
-    setDetails(p.detail);
-    setCamera(p.camera);
-    setExtra(p.extra);
-    if (nextMode === "casualKorea") {
-      setMood("cheerful");
-      setGenre("casual RPG");
-      setStyle("Korean casual mobile game style");
-      setPalette("vibrant pastel colors");
-      setLight("soft sunlight");
+  const saveStyles = (items) => {
+    setSavedStyles(items);
+    localStorage.setItem("conceptToolV2Styles", JSON.stringify(items));
+  };
+
+  const setSelection = (key, value) => {
+    if (activeTab === "background") {
+      setBackground((prev) => ({ ...prev, [key]: value }));
+    } else {
+      setCharacter((prev) => ({ ...prev, [key]: value }));
     }
   };
 
+  const toggleListValue = (list, setList, value) => {
+    setList(list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
+  };
+
   const randomize = () => {
-    setMood(randomOf(moodOptions).value);
-    setGenre(randomOf(genreOptions).value);
-    setLight(randomOf(lightingOptions).value);
-    setPalette(randomOf(paletteOptions).value);
-    setStyle(randomOf(styleOptions).value);
-    setCamera(randomOf(cameraOptions).value);
+    if (activeTab === "background") {
+      const next = {};
+      Object.entries(BACKGROUND_OPTIONS).forEach(([key, group]) => {
+        next[key] = randomOf(group.options).value;
+      });
+      next.detail = background.detail;
+      setBackground(next);
+    } else {
+      const next = {};
+      Object.entries(CHARACTER_OPTIONS).forEach(([key, group]) => {
+        next[key] = randomOf(group.options).value;
+      });
+      next.detail = character.detail;
+      setCharacter(next);
+    }
+  };
+
+  const buildPrompt = () => {
+    const directions = designDirections.join(", ");
+    const negatives = negativeItems.join(", ");
+
+    if (activeTab === "background") {
+      const prompt = [
+        `A ${background.mood} ${background.genre} background concept art of ${background.type}.`,
+        `Scene details: ${background.detail}.`,
+        `Lighting: ${background.lighting}.`,
+        `Color palette: ${background.color}.`,
+        `Art style: ${background.artStyle}, ${background.artMood}.`,
+        `Camera and composition: ${background.camera}.`,
+        `Design direction: ${directions}.`,
+        `Quality keywords: highly polished, clean shapes, soft shading, high readability, mobile game art, game-ready environment design, 4k.`,
+        `Negative prompt: ${negatives}.`,
+      ].join("\n");
+      setFinalPrompt(prompt);
+      return;
+    }
+
+    const prompt = [
+      `A ${character.personality} ${character.race} ${character.job} character concept art.`,
+      `Character design: wearing ${character.costume}, holding ${character.weapon}.`,
+      `Pose and composition: ${character.pose}.`,
+      `Character details: ${character.detail}.`,
+      `Color palette: ${character.color}.`,
+      `Art style: ${character.artStyle}.`,
+      `Design direction: ${directions}.`,
+      `Quality keywords: highly polished, clean silhouette, expressive face, appealing costume design, soft shading, mobile game character art, 4k.`,
+      `Negative prompt: ${negatives}.`,
+    ].join("\n");
+    setFinalPrompt(prompt);
   };
 
   const copyText = async (text, label) => {
@@ -160,104 +366,184 @@ function App() {
     setTimeout(() => setCopied(""), 1200);
   };
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
-    setUseImageReference(true);
+  const saveCurrentStyle = () => {
+    const name = styleName.trim() || `내 스타일 ${savedStyles.length + 1}`;
+    const item = {
+      id: Date.now().toString(),
+      name,
+      tab: activeTab,
+      background,
+      character,
+      designDirections,
+      negativeItems,
+    };
+    const next = [item, ...savedStyles];
+    saveStyles(next);
+    setStyleName(`내 스타일 ${next.length + 1}`);
   };
+
+  const applySavedStyle = (item) => {
+    setActiveTab(item.tab || "background");
+    setBackground(item.background || DEFAULT_SELECTION.background);
+    setCharacter(item.character || DEFAULT_SELECTION.character);
+    setDesignDirections(item.designDirections || []);
+    setNegativeItems(item.negativeItems || []);
+    setFinalPrompt("");
+  };
+
+  const deleteSavedStyle = (id) => {
+    saveStyles(savedStyles.filter((item) => item.id !== id));
+  };
+
+  const groups = activeTab === "background" ? BACKGROUND_OPTIONS : CHARACTER_OPTIONS;
+  const detailLabel = activeTab === "background" ? "배경 디테일" : "캐릭터 디테일";
+  const detailHelp =
+    activeTab === "background"
+      ? "건물, 장식, 소품, 길, 식물, 분위기 요소를 영어로 적어보세요."
+      : "헤어, 표정, 눈, 의상 포인트, 소품, 매력을 영어로 적어보세요.";
 
   return (
     <div className="page">
       <header className="hero">
         <div>
-          <div className="badge"><Sparkles size={16} /> Korean UI · English Prompt</div>
-          <h1>게임 컨셉 이미지 프롬프트 에디터</h1>
-          <p>화면은 한국어로 쉽게 고르고, 완성 프롬프트는 이미지 생성에 적합한 영어로 만들어집니다.</p>
+          <div className="badge"><Sparkles size={16} /> Concept Tool v2 · Korean UI · English Prompt</div>
+          <h1>게임 컨셉 프롬프트 제작 툴</h1>
+          <p>배경과 캐릭터를 분리해서 선택하고, 마지막에 프롬프트 만들기 버튼으로 완성 영문 프롬프트를 생성합니다.</p>
         </div>
         <div className="heroButtons">
-          <button className="button secondary" onClick={randomize}><Dice5 size={18} /> 랜덤 조합</button>
-          <button className="button primary" onClick={() => copyText(`${prompt}\n\nNegative prompt:\n${negative}`, "all")}><Copy size={18} /> 전체 복사</button>
+          <button className="button secondary" onClick={randomize}><Dice5 size={18} /> 랜덤 선택</button>
+          <button className="button primary" onClick={buildPrompt}><Wand2 size={18} /> 프롬프트 만들기</button>
         </div>
       </header>
 
-      <main className="layout">
-        <section className="panel">
-          <OptionGroup label="프리셋" icon={<Gamepad2 size={16} />} value={mode} options={Object.entries(PRESETS).map(([key, item]) => ({ label: item.label, emoji: item.emoji, value: key }))} onChange={applyPreset} columns="three" />
-          <OptionGroup label="분위기" icon={<Sparkles size={16} />} value={mood} options={moodOptions} onChange={setMood} />
-          <OptionGroup label="장르" icon={<Gamepad2 size={16} />} value={genre} options={genreOptions} onChange={setGenre} />
+      <main className="appLayout">
+        <section className="builderPanel">
+          <div className="topTabs">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                className={activeTab === tab.id ? "topTab active" : "topTab"}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setFinalPrompt("");
+                }}
+              >
+                <span>{tab.emoji}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-          <div className="uploadBox">
-            <div className="optionLabel"><Upload size={16} /> 이미지 참고</div>
-            <p className="help">참고 이미지를 올리고, 특징을 메모하면 완성 프롬프트에 영어로 반영됩니다.</p>
-            <label className="uploadButton">
-              <ImagePlus size={18} />
-              이미지 업로드
-              <input type="file" accept="image/*" onChange={handleImageUpload} />
-            </label>
-            {imagePreview && (
-              <div className="previewWrap">
-                <img src={imagePreview} alt="uploaded reference" />
-              </div>
-            )}
-            <label className="checkLine">
-              <input
-                type="checkbox"
-                checked={useImageReference}
-                onChange={(e) => setUseImageReference(e.target.checked)}
+          <div className="sectionTitle">
+            <Gamepad2 size={18} />
+            {activeTab === "background" ? "배경 옵션" : "캐릭터 옵션"}
+          </div>
+
+          <div className="optionSections">
+            {Object.entries(groups).map(([key, group]) => (
+              <OptionGroup
+                key={key}
+                label={group.label}
+                icon={group.icon}
+                value={currentSelection[key]}
+                options={group.options}
+                onChange={(value) => setSelection(key, value)}
               />
-              이 이미지 메모를 프롬프트에 반영
-            </label>
-            <Area
-              label="이미지 특징 메모"
-              help="AI가 이미지를 자동 분석하는 단계는 아니지만, 그림을 보고 느낀 특징을 적으면 영문 프롬프트에 합쳐집니다."
-              value={imageMemo}
-              setValue={setImageMemo}
+            ))}
+          </div>
+
+          <div className="textInputBlock">
+            <label>{detailLabel}</label>
+            <p>{detailHelp}</p>
+            <textarea
+              rows={4}
+              value={currentSelection.detail}
+              onChange={(e) => setSelection("detail", e.target.value)}
             />
           </div>
 
+          <MultiSelectGroup
+            label="추가 디자인 방향"
+            icon={<Palette size={18} />}
+            values={designDirections}
+            options={DESIGN_DIRECTION_OPTIONS}
+            onToggle={(value) => toggleListValue(designDirections, setDesignDirections, value)}
+          />
 
-          <Field label={preset.subjectLabel} help={preset.subjectHelp} value={subject} setValue={setSubject} placeholder="영어로 적으면 결과가 더 안정적이에요" />
-          <Area label="디테일" help="의상, 소품, 건물, 장식, 재질, 감정 등을 자유롭게 적어보세요." value={details} setValue={setDetails} />
+          <MultiSelectGroup
+            label="네거티브 프롬프트"
+            icon={<Trash2 size={18} />}
+            values={negativeItems}
+            options={NEGATIVE_OPTIONS}
+            onToggle={(value) => toggleListValue(negativeItems, setNegativeItems, value)}
+          />
 
-          <OptionGroup label="조명" icon={<Sun size={16} />} value={light} options={lightingOptions} onChange={setLight} />
-          <OptionGroup label="컬러 팔레트" icon={<Palette size={16} />} value={palette} options={paletteOptions} onChange={setPalette} />
-          <OptionGroup label="아트 스타일" icon={<Wand2 size={16} />} value={style} options={styleOptions} onChange={setStyle} />
-          <OptionGroup label="카메라 / 구도" icon={<Camera size={16} />} value={camera} options={cameraOptions} onChange={setCamera} />
-
-          <Area label="추가 디자인 방향" help="작은 화면에서 잘 보이게, 실루엣을 단순하게 같은 방향성을 넣으면 좋아요." value={extra} setValue={setExtra} />
-          <Area label="네거티브 프롬프트" help="원하지 않는 느낌을 영어로 적어두는 영역입니다." value={negative} setValue={setNegative} />
+          <button className="generateButton" onClick={buildPrompt}>
+            <Wand2 size={22} />
+            프롬프트 만들기
+          </button>
         </section>
 
-        <section className="resultArea">
-          <div className="card">
+        <section className="resultPanel">
+          <div className="card promptCard">
             <div className="cardHeader">
               <div>
                 <h2>완성 프롬프트</h2>
-                <p>아래 결과는 영어로 생성됩니다. 복사해서 ChatGPT에 붙여넣고 “이걸로 이미지 만들어줘”라고 말하면 됩니다.</p>
+                <p>모든 선택을 마친 뒤 프롬프트 만들기 버튼을 누르면 여기에 영문 프롬프트가 생성됩니다.</p>
               </div>
-              <button className="button secondary" onClick={() => copyText(prompt, "prompt")}>
+              <button
+                className="button secondary"
+                disabled={!finalPrompt}
+                onClick={() => copyText(finalPrompt, "prompt")}
+              >
                 <Copy size={18} /> {copied === "prompt" ? "복사됨" : "복사"}
               </button>
             </div>
-            <pre>{prompt}</pre>
+            <pre className={!finalPrompt ? "placeholderPrompt" : ""}>
+              {finalPrompt || "아직 생성된 프롬프트가 없습니다.\n왼쪽 옵션을 고른 뒤 [프롬프트 만들기]를 눌러주세요."}
+            </pre>
           </div>
 
-          <div className="twoCards">
-            <div className="card small">
-              <h2><Wand2 size={20} /> 네거티브 프롬프트</h2>
-              <p className="negative">{negative}</p>
+          <div className="card saveCard">
+            <div className="cardHeader">
+              <div>
+                <h2><Bookmark size={22} /> 내 스타일 저장</h2>
+                <p>현재 선택 조합을 저장하고 나중에 다시 불러올 수 있습니다.</p>
+              </div>
             </div>
-            <div className="card small">
-              <h2><ImagePlus size={20} /> 사용 방법</h2>
-              <ol>
-                <li>왼쪽에서 한국어 버튼을 눌러 방향을 정합니다.</li>
-                <li>참고 이미지가 있으면 업로드하고 특징을 메모합니다.</li>
-                <li>완성 프롬프트를 복사합니다.</li>
-                <li>ChatGPT에 붙여넣고 이미지 생성을 요청합니다.</li>
-              </ol>
+
+            <div className="saveRow">
+              <input value={styleName} onChange={(e) => setStyleName(e.target.value)} placeholder="저장할 스타일 이름" />
+              <button className="button primary" onClick={saveCurrentStyle}><Save size={18} /> 저장</button>
             </div>
+
+            <div className="savedList">
+              {savedStyles.length === 0 ? (
+                <p className="emptyText">아직 저장한 스타일이 없습니다.</p>
+              ) : (
+                savedStyles.map((item) => (
+                  <div className="savedItem" key={item.id}>
+                    <button className="savedLoad" onClick={() => applySavedStyle(item)}>
+                      <strong>{item.name}</strong>
+                      <span>{item.tab === "background" ? "배경 전용" : "캐릭터 전용"} · {item.tab === "background" ? item.background.artStyle : item.character.artStyle}</span>
+                    </button>
+                    <button className="iconButton" onClick={() => deleteSavedStyle(item.id)} aria-label="삭제">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="card guideCard">
+            <h2><Library size={22} /> 사용 흐름</h2>
+            <ol>
+              <li>가장 위에서 배경 전용 또는 캐릭터 전용을 선택합니다.</li>
+              <li>각 옵션을 버튼으로 고릅니다.</li>
+              <li>디자인 방향과 네거티브 프롬프트를 템플릿으로 선택합니다.</li>
+              <li>프롬프트 만들기 버튼을 눌러 완성 프롬프트를 생성합니다.</li>
+            </ol>
           </div>
         </section>
       </main>
@@ -265,16 +551,19 @@ function App() {
   );
 }
 
-function OptionGroup({ label, icon, value, options, onChange, columns = "two" }) {
+function OptionGroup({ label, icon, value, options, onChange }) {
   return (
     <div className="optionGroup">
-      <div className="optionLabel">{icon}{label}</div>
-      <div className={`optionGrid ${columns}`}>
+      <div className="optionLabel">
+        <span>{icon}</span>
+        {label}
+      </div>
+      <div className="optionGrid">
         {options.map((option) => (
           <button
             key={option.value}
-            onClick={() => onChange(option.value)}
             className={value === option.value ? "option active" : "option"}
+            onClick={() => onChange(option.value)}
           >
             <span>{option.emoji}</span>
             {option.label}
@@ -285,22 +574,25 @@ function OptionGroup({ label, icon, value, options, onChange, columns = "two" })
   );
 }
 
-function Field({ label, help, value, setValue, placeholder }) {
+function MultiSelectGroup({ label, icon, values, options, onToggle }) {
   return (
-    <div className="field">
-      <label>{label}</label>
-      {help && <p className="help">{help}</p>}
-      <input value={value} placeholder={placeholder} onChange={(e) => setValue(e.target.value)} />
-    </div>
-  );
-}
-
-function Area({ label, help, value, setValue }) {
-  return (
-    <div className="field">
-      <label>{label}</label>
-      {help && <p className="help">{help}</p>}
-      <textarea rows="3" value={value} onChange={(e) => setValue(e.target.value)} />
+    <div className="multiGroup">
+      <div className="sectionTitle smallTitle">
+        {icon}
+        {label}
+      </div>
+      <div className="optionGrid">
+        {options.map((option) => (
+          <button
+            key={option.value}
+            className={values.includes(option.value) ? "option active multi" : "option multi"}
+            onClick={() => onToggle(option.value)}
+          >
+            <span>{option.emoji}</span>
+            {option.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
