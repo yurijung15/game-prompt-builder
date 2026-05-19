@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Copy, Sparkles, Dice5, ImagePlus, Wand2, Palette, Camera, Sun, Gamepad2 } from "lucide-react";
+import { Copy, Sparkles, Dice5, ImagePlus, Wand2, Palette, Camera, Sun, Gamepad2, Upload } from "lucide-react";
 import "./style.css";
 
 const PRESETS = {
@@ -110,6 +110,9 @@ function App() {
   const [extra, setExtra] = useState(PRESETS.background.extra);
   const [negative, setNegative] = useState("realistic horror, dark gritty realism, noisy details, unreadable silhouette, messy composition, low quality, blurry");
   const [copied, setCopied] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageMemo, setImageMemo] = useState("rounded cute shapes, pastel colors, soft shading, mobile game illustration style");
+  const [useImageReference, setUseImageReference] = useState(false);
 
   const preset = PRESETS[mode];
 
@@ -121,9 +124,10 @@ function App() {
       `Art style: ${style}.`,
       `Camera and composition: ${camera}.`,
       `Design direction: ${extra}.`,
+      useImageReference ? `Image reference notes: ${imageMemo}.` : "",
       `Quality keywords: ${quality.join(", ")}.`,
-    ].join("\n");
-  }, [mood, genre, subject, details, light, palette, style, camera, extra]);
+    ].filter(Boolean).join("\n");
+  }, [mood, genre, subject, details, light, palette, style, camera, extra, useImageReference, imageMemo]);
 
   const applyPreset = (nextMode) => {
     const p = PRESETS[nextMode];
@@ -156,6 +160,14 @@ function App() {
     setTimeout(() => setCopied(""), 1200);
   };
 
+  const handleImageUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+    setUseImageReference(true);
+  };
+
   return (
     <div className="page">
       <header className="hero">
@@ -175,6 +187,36 @@ function App() {
           <OptionGroup label="프리셋" icon={<Gamepad2 size={16} />} value={mode} options={Object.entries(PRESETS).map(([key, item]) => ({ label: item.label, emoji: item.emoji, value: key }))} onChange={applyPreset} columns="three" />
           <OptionGroup label="분위기" icon={<Sparkles size={16} />} value={mood} options={moodOptions} onChange={setMood} />
           <OptionGroup label="장르" icon={<Gamepad2 size={16} />} value={genre} options={genreOptions} onChange={setGenre} />
+
+          <div className="uploadBox">
+            <div className="optionLabel"><Upload size={16} /> 이미지 참고</div>
+            <p className="help">참고 이미지를 올리고, 특징을 메모하면 완성 프롬프트에 영어로 반영됩니다.</p>
+            <label className="uploadButton">
+              <ImagePlus size={18} />
+              이미지 업로드
+              <input type="file" accept="image/*" onChange={handleImageUpload} />
+            </label>
+            {imagePreview && (
+              <div className="previewWrap">
+                <img src={imagePreview} alt="uploaded reference" />
+              </div>
+            )}
+            <label className="checkLine">
+              <input
+                type="checkbox"
+                checked={useImageReference}
+                onChange={(e) => setUseImageReference(e.target.checked)}
+              />
+              이 이미지 메모를 프롬프트에 반영
+            </label>
+            <Area
+              label="이미지 특징 메모"
+              help="AI가 이미지를 자동 분석하는 단계는 아니지만, 그림을 보고 느낀 특징을 적으면 영문 프롬프트에 합쳐집니다."
+              value={imageMemo}
+              setValue={setImageMemo}
+            />
+          </div>
+
 
           <Field label={preset.subjectLabel} help={preset.subjectHelp} value={subject} setValue={setSubject} placeholder="영어로 적으면 결과가 더 안정적이에요" />
           <Area label="디테일" help="의상, 소품, 건물, 장식, 재질, 감정 등을 자유롭게 적어보세요." value={details} setValue={setDetails} />
@@ -211,6 +253,7 @@ function App() {
               <h2><ImagePlus size={20} /> 사용 방법</h2>
               <ol>
                 <li>왼쪽에서 한국어 버튼을 눌러 방향을 정합니다.</li>
+                <li>참고 이미지가 있으면 업로드하고 특징을 메모합니다.</li>
                 <li>완성 프롬프트를 복사합니다.</li>
                 <li>ChatGPT에 붙여넣고 이미지 생성을 요청합니다.</li>
               </ol>
